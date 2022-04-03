@@ -6,7 +6,7 @@ public class FireLight : MonoBehaviour {
 
 	[SerializeField] private Vector3 progressBarOffset;
 	[SerializeField] private MinMaxFloat age;
-	[SerializeField] private float flickerSpeed;
+	[SerializeField] private MinMaxFloat flickerSpeed;
 	[SerializeField] private MinMaxFloat flickerRate;
 	[SerializeField] private bool useRange;
 	[SerializeField] private MinMaxFloat flickerRange;
@@ -16,6 +16,8 @@ public class FireLight : MonoBehaviour {
 	[SerializeField] private MinMaxFloat flickerMotion;
 	[SerializeField] private bool useColors;
 	[SerializeField] private Gradient flickerColors;
+	[SerializeField] private Renderer effectRenderer;
+	[SerializeField] private string effectRendererField;
 
 	private UIManager uiManager;
 	private UIProgressBar progressBar;
@@ -23,14 +25,16 @@ public class FireLight : MonoBehaviour {
 	private float flickerTimer;
 	private float flickerTimeout;
 	private bool fading;
+	private Vector3 origin;
 
 	private void Awake() {
 		light = GetComponentInChildren<Light>();
 	}
 
 	private void Start() {
+		origin = transform.position;
 		if (uiManager == null) uiManager = FindObjectOfType<UIManager>();
-		progressBar = uiManager.CreateProgressBar(transform.position + progressBarOffset);
+		progressBar = uiManager.CreateProgressBar(transform, progressBarOffset);
 	}
 
 	private void Update() {
@@ -51,11 +55,19 @@ public class FireLight : MonoBehaviour {
 		fading = true;
 		float startIntensity = light.intensity;
 		float endIntensity = flickerIntensity.Random() * progressBar.Progress;
+		Vector3 startPos = transform.position;
+		Vector3 endPos = origin.Random(flickerMotion.Random());
 		float t = 0;
 		while (t < 1) {
-			t += Time.deltaTime * flickerSpeed;
+			t += Time.deltaTime * flickerSpeed.Random();
 			if (useIntensity) {
 				light.intensity = Mathf.Lerp(startIntensity, endIntensity, t);
+			}
+			if (useMotion) {
+				transform.position = Vector3.Lerp(startPos, endPos, t);
+			}
+			if (effectRenderer) {
+				effectRenderer.material.SetFloat(effectRendererField, light.intensity);
 			}
 
 			yield return null;

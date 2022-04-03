@@ -3,6 +3,7 @@
     Properties
     {
 		_BaseColor("Color", Color) = (0.5,0.5,0.5,0.5)
+		_Intensity("Intensity", Range(0,10)) = 1
         _MainTex ("Texture", 2D) = "white" {}
         _columns ("Columns", int) = 1
         _rows ("Rows", int) = 1
@@ -51,6 +52,7 @@
             fixed _rows;
             fixed _fps;
 			fixed4 _BaseColor;
+			fixed _Intensity;
 
             v2f vert (appdata v)
             {
@@ -73,7 +75,7 @@
             fixed4 frag (v2f i) : SV_Target
             {
 				fixed4 col = tex2D(_MainTex, i.uv) * i.color * _BaseColor;
-                return col;
+                return col * _Intensity;
             }
             ENDCG
         }

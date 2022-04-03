@@ -16,8 +16,20 @@ public class UIProgressBar : MonoBehaviour {
 			}
 		}
 	}
-	
+
+	private UIManager uiManager;
+	private Transform target;
+	private Vector3 targetOffset;
+
+	public void Init(UIManager _uiManager, Transform _target, Vector3 _targetOffset) {
+		uiManager = _uiManager;
+		target = _target;
+		targetOffset = _targetOffset;
+		UpdateProgress();
+	}
+
 	private void UpdateProgress() {
+		(transform as RectTransform).anchoredPosition = uiManager.GetCanvasPosition(target.position + targetOffset);
 		if (fillImage)
 			fillImage.fillAmount = progress;
 	}
