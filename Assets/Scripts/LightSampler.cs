@@ -8,10 +8,12 @@ public class LightSampler : MonoBehaviour {
 
 	[SerializeField] private UIManager uiManager;
 	[SerializeField] private float factor = 1;
+	[SerializeField] private int minDistance = 2;
 	[SerializeField] private Image samplerRenderDisplay;
 	[SerializeField] private Camera samplerCamera;
 
 	private RenderTexture renderTexture;
+	public RenderTexture RenderTexture => renderTexture;
 	private Image[] sampleDisplay;
 	private Texture2D cacheTex;
 
@@ -34,43 +36,20 @@ public class LightSampler : MonoBehaviour {
 	public Vector2Int GetGridPos(Vector3 worldPos) {
 		float cellsize = Screen.width / (16 * factor);
 		Vector2 canvasPos = uiManager.GetCanvasPosition(worldPos);
-		return new Vector2Int(Mathf.RoundToInt(canvasPos.x / cellsize), Mathf.RoundToInt(canvasPos.y / cellsize));
+		int x = Mathf.Clamp(Mathf.RoundToInt(canvasPos.x / cellsize), 0, 32);
+		int y = Mathf.Clamp(Mathf.RoundToInt(canvasPos.y / cellsize), 0, 18);
+		return new Vector2Int(x, y);
 	}
+	
 
 	public float GetLightLevel(Vector2Int gridPos) {
-		return GetColorMap()[Mathf.RoundToInt(gridPos.x + (renderTexture.height - gridPos.y - 1) * renderTexture.width)].r;
+		//gridPos.y = renderTexture.height - gridPos.y - 1;
+		if (gridPos.x < 0 || gridPos.x >= renderTexture.width) return 0;
+		if (gridPos.y < 0 || gridPos.y >= renderTexture.height) return 0;
+		int i = (gridPos.y * renderTexture.width) + gridPos.x;
+		return GetColorMap()[i].r;
 	}
-
-	public Vector2Int? GetRandomNearestDarkCell(Vector2Int gridPos, float darkThreshold = 0.2f) {
-		Color[] cmap = GetColorMap();
-		List<int> validCells = new List<int>();
-		List<int> distances = new List<int>();
-		int closestDistance = renderTexture.width + renderTexture.height;
-		for (int i = 0; i < cmap.Length; i++) {
-			int x = i % renderTexture.width;
-			int y = renderTexture.height - (i / renderTexture.width);
-			if (gridPos.x == x && gridPos.y == y) continue;
-			if (cmap[i].r <= darkThreshold) {
-				int d = Mathf.Abs(gridPos.x - x) + Mathf.Abs(gridPos.y - y);
-				if (d < closestDistance) closestDistance = d;
-				distances.Add(d);
-				validCells.Add(i);
-			}
-		}
-		if (distances.Count == 0) return null;
-		List<int> shortList = new List<int>();
-		for (int d = 0; d < distances.Count; d++) {
-			if (distances[d] == closestDistance) shortList.Add(validCells[d]);
-		}
-		if (shortList.Count == 0) return null;
-		int choice = shortList.Random();
-		string list = "(" + (choice % renderTexture.width) + ", " + (choice / renderTexture.width) + "), ";
-		foreach (var i in shortList) {
-			list += "(" + (i % renderTexture.width) + ", " + (i / renderTexture.width) + "), ";
-		}
-		Debug.Log(list);
-		return new Vector2Int(choice % renderTexture.width, choice / renderTexture.width - 1);
-	}
+	
 
 	private Color[] GetColorMap() {
 		RenderTexture.active = renderTexture;

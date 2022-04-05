@@ -60,13 +60,18 @@ public static class ExtensionMethods
 		return vector + new Vector3( x, y, z );
 	}
 
-	public static Vector3 Random ( this Vector3 vector, float min, float max )
-	{
-		float x = UnityEngine.Random.Range( min, max );
-		float y = UnityEngine.Random.Range( min, max );
-		float z = UnityEngine.Random.Range( min, max );
+	public static Vector3 Random(this Vector3 vector, float min, float max, bool flatY = false) {
+		float halfMin = min / 2;
+		float halfMax = max / 2;
+		float x = UnityEngine.Random.Range(halfMin, halfMax);
+		float y = UnityEngine.Random.Range(halfMin, halfMax);
+		float z = UnityEngine.Random.Range(halfMin, halfMax);
+		if (UnityEngine.Random.Range(0f, 1f) < 0.5f) x = -x;
+		if (UnityEngine.Random.Range(0f, 1f) < 0.5f) y = -y;
+		if (UnityEngine.Random.Range(0f, 1f) < 0.5f) z = -z;
+		if (flatY) y = 0;
 
-		return vector + new Vector3( x, y, z );
+		return vector + new Vector3(x, y, z);
 	}
 
 
@@ -338,6 +343,21 @@ public class MinMaxFloat {
 	}
 
 	public float Random() {
+		return UnityEngine.Random.Range(min, max);
+	}
+}
+
+[System.Serializable]
+public class MinMaxInt {
+	public int min;
+	public int max;
+
+	public MinMaxInt(int _min, int _max) {
+		min = _min;
+		max = _max;
+	}
+
+	public int Random() {
 		return UnityEngine.Random.Range(min, max);
 	}
 }

@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class FireLight : MonoBehaviour {
 
+	[SerializeField] private Furniture furniture;
 	[SerializeField] private Vector3 progressBarOffset;
 	[SerializeField] private MinMaxFloat age;
 	[SerializeField] private MinMaxFloat flickerSpeed;
@@ -18,10 +19,10 @@ public class FireLight : MonoBehaviour {
 	[SerializeField] private Gradient flickerColors;
 	[SerializeField] private Renderer effectRenderer;
 	[SerializeField] private string effectRendererField;
+	public UIInfoDisplay infoDisplay;
 
 	private UIManager uiManager;
-	private UIProgressBar progressBar;
-	private Light light;
+	private new Light light;
 	private float flickerTimer;
 	private float flickerTimeout;
 	private bool fading;
@@ -34,14 +35,15 @@ public class FireLight : MonoBehaviour {
 	private void Start() {
 		origin = transform.position;
 		if (uiManager == null) uiManager = FindObjectOfType<UIManager>();
-		progressBar = uiManager.CreateProgressBar(transform, progressBarOffset);
+		//infoDisplay.ProgressBar.Init(uiManager, furniture.transform, progressBarOffset);
 	}
 
 	private void Update() {
 		float deltaTime = Time.deltaTime;
 		flickerTimer += deltaTime;
-		age.min += deltaTime;
-		progressBar.Progress = 1 - (age.min / age.max);
+		age.min = Mathf.Clamp(age.min + deltaTime, 0, age.max);
+		if (infoDisplay)
+			infoDisplay.ProgressBar.Progress = 1 - (age.min / age.max);
 		if (flickerTimer >= flickerTimeout) {
 			flickerTimer = 0;
 			flickerTimeout = flickerRate.Random();
@@ -51,10 +53,16 @@ public class FireLight : MonoBehaviour {
 		}
 	}
 
+
+	public void Refuel(float amount) {
+		age.min = Mathf.Clamp(age.min - amount, 0, age.max);
+		infoDisplay.ProgressBar.Progress = 1 - (age.min / age.max);
+	}
+
 	private IEnumerator fade() {
 		fading = true;
 		float startIntensity = light.intensity;
-		float endIntensity = flickerIntensity.Random() * progressBar.Progress;
+		float endIntensity = flickerIntensity.Random() * (1 - (age.min / age.max));
 		Vector3 startPos = transform.position;
 		Vector3 endPos = origin.Random(flickerMotion.Random());
 		float t = 0;

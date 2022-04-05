@@ -28,8 +28,14 @@ public class UIProgressBar : MonoBehaviour {
 		UpdateProgress();
 	}
 
+	private void Update() {
+		if (uiManager) {
+			UpdateProgress();
+		}
+	}
+
 	private void UpdateProgress() {
-		(transform as RectTransform).anchoredPosition = uiManager.GetCanvasPosition(target.position + targetOffset);
+		//(transform as RectTransform).anchoredPosition = uiManager.GetCanvasPosition(target.position + targetOffset);
 		if (fillImage)
 			fillImage.fillAmount = progress;
 	}
